@@ -1,8 +1,29 @@
+"""Utility functions for generating toy datasets."""
+
 import jax.numpy as jnp
 import numpy as np
 from jax import random
 
-def generate_happy_face(num_samples, spread=0.01, key=None, face_prob=0.7, eye_prob=0.1):
+def generate_happy_face(
+    num_samples: int,
+    spread: float = 0.01,
+    key: random.KeyArray | None = None,
+    face_prob: float = 0.7,
+    eye_prob: float = 0.1,
+) -> jnp.ndarray:
+    """Generate points shaped like a smiley face.
+
+    Args:
+        num_samples: Number of points to generate.
+        spread: Standard deviation of Gaussian noise.
+        key: Optional PRNGKey for randomness.
+        face_prob: Fraction of samples forming the face outline.
+        eye_prob: Fraction of samples forming each eye.
+
+    Returns:
+        Array of shape ``(num_samples, 2)`` containing the points.
+    """
+
     if key is None:
         key = random.PRNGKey(0)
 
@@ -37,7 +58,28 @@ def generate_happy_face(num_samples, spread=0.01, key=None, face_prob=0.7, eye_p
 
     return jnp.array(data * 6, dtype=jnp.float32)
 
-def generate_mixture_gaussians(num_samples, centers=6, spread=.5, radius=5.0, center_probs=None, key=None):
+def generate_mixture_gaussians(
+    num_samples: int,
+    centers: int = 6,
+    spread: float = 0.5,
+    radius: float = 5.0,
+    center_probs: np.ndarray | None = None,
+    key: random.KeyArray | None = None,
+) -> jnp.ndarray:
+    """Create samples from a ring of Gaussian distributions.
+
+    Args:
+        num_samples: Total number of samples to draw.
+        centers: Number of mixture components equally spaced on a circle.
+        spread: Standard deviation of each component.
+        radius: Radius of the circle.
+        center_probs: Optional probabilities per component.
+        key: Optional PRNGKey for randomness.
+
+    Returns:
+        Array of shape ``(num_samples, 2)`` with generated points.
+    """
+
     if key is None:
         key = random.PRNGKey(0)
 

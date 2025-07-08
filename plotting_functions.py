@@ -1,10 +1,11 @@
+"""Helper plotting utilities for generated point clouds."""
+
 import matplotlib.pyplot as plt
 import math
+import jax.numpy as jnp
 
-def plot_points(data,  title=None, show_axis=True):
-    """
-    plots 2d  points
-    """
+def plot_points(data: jnp.ndarray, title: str | None = None, show_axis: bool = True) -> None:
+    """Scatter plot of 2‑D points."""
     fig, ax = plt.subplots()
     ax.set_aspect('equal')
     
@@ -26,15 +27,13 @@ def plot_points(data,  title=None, show_axis=True):
 
 
 
-def plot_points_over_time(data, times, title=None, show_axis=True):
-    """
-    Plots 2D points evolving over a range of times [0, 1] in a grid format.
-    
-    :param data: Array of shape [n_points, 2, n_times] containing the points to plot at each time step.
-    :param times: Array of shape [n_times] containing the specific time values for each time step.
-    :param title: (Optional) Title for the entire figure.
-    :param show_axis: (Optional) Flag to show or hide axes.
-    """
+def plot_points_over_time(
+    data: jnp.ndarray,
+    times: list[float],
+    title: str | None = None,
+    show_axis: bool = True,
+) -> None:
+    """Plot a trajectory of points at multiple times."""
     n_times = len(times)  # Determine the number of time steps
     
     # Calculate grid size
@@ -80,19 +79,13 @@ def plot_points_over_time(data, times, title=None, show_axis=True):
     
     plt.show()
 
-def plot_real_fake_points(real_data, fake_data, title=None, show_axis=True):
-    """
-    Plots the first two components of n-dimensional real and fake data points on the same plot for comparison.
-
-    Args:
-      real_data: JAX array of shape (num_samples, n) containing the real data points.
-      fake_data: JAX array of shape (num_samples, n) containing the fake data points.
-      title: Optional title for the plot.
-      show_axis: Whether to show the axis labels and ticks (default: False).
-
-    Returns:
-      None
-    """
+def plot_real_fake_points(
+    real_data: jnp.ndarray,
+    fake_data: jnp.ndarray,
+    title: str | None = None,
+    show_axis: bool = True,
+) -> None:
+    """Compare real and generated samples in a scatter plot."""
     fig, ax = plt.subplots()
     ax.set_aspect('equal')
     
