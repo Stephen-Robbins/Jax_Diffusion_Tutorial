@@ -1,0 +1,16 @@
+# JAX ecosystem
+jax>=0.4.0
+jaxlib>=0.4.0
+equinox>=0.11.0
+optax>=0.1.5
+
+# Data handling and visualization
+numpy>=1.22.0
+matplotlib>=3.5.0
+
+# Progress bars
+tqdm>=4.65.0
+
+# Jupyter support
+jupyter>=1.0.0
+notebook>=6.5.0
