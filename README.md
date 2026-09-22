@@ -1,55 +1,37 @@
 # JAX Diffusion Tutorial
 
-Score-based diffusion models implemented in JAX with Equinox.
+Score-based diffusion models implemented with JAX, Equinox, and Optax,
+including diffusion and bridge-conditioned examples.
 
-## Overview
+## Installation
 
-Tutorial implementation of diffusion models using JAX's functional programming paradigm and automatic differentiation. Includes both standard diffusion and diffusion bridge implementations.
-
-## Why JAX?
-
-- **Functional purity**: Immutable model parameters work naturally with diffusion SDEs
-- **JIT compilation**: Significant speedup for score function evaluation
-- **vmap**: Efficient batched operations for sampling
-- **Automatic differentiation**: Clean score function implementation via `grad`
+```bash
+pip install jax equinox optax matplotlib numpy
+```
 
 ## Components
 
-- `Score_nets.py`: Neural network architectures using Equinox
-- `sde.py`: SDE solvers with JAX's functional approach
-- `data.py`: Dataset utilities compatible with JAX arrays
-- `train.py`: Training loop using Optax optimizers
-- `plotting_functions.py`: Visualization helpers
+- `Score_nets.py`: Equinox network architectures.
+- `sde.py`: Diffusion and bridge SDE implementations.
+- `data.py`: Toy dataset generators.
+- `train.py`: Training and checkpoint utilities.
+- `plotting_functions.py`: Visualization helpers.
+- `Examples.ipynb`: Interactive examples and experiment configurations.
 
-## Key Features
-
-- **Diffusion Bridge**: Implementation of conditional diffusion between two distributions
-- **Checkpointing**: Model serialization with Equinox
-- **Multiple SDEs**: VP-SDE and VE-SDE implementations
-
-## Notebooks
-
-- `Examples.ipynb`: Step-by-step tutorial with visualizations
-
-## Usage
+The modules live in the repository root. For example:
 
 ```python
-import jax
-import equinox as eqx
-from train import train_model
-from data import get_2d_data
+import jax.random as jr
+from data import generate_happy_face
 
-# Generate data
-key = jax.random.PRNGKey(0)
-data = get_2d_data(key, n_samples=1000)
-
-# Train model
-model = train_model(data, n_epochs=500)
-
-# Model weights are immutable - functional updates
-params, static = eqx.partition(model, eqx.is_array)
+points = generate_happy_face(10000, key=jr.PRNGKey(0))
 ```
 
-## Checkpoints
+See `Examples.ipynb` for model and SDE configurations. Checkpoints are linked
+to the canonical local Data directory and are not included in Git.
 
-Bridge models saved in `checkpoints/Bridge/` with different beta configurations.
+## References and license
+
+The implementation follows score-based generative modeling
+([Song et al., 2021](https://arxiv.org/abs/2011.13456)).
+See [LICENSE](LICENSE) for the MIT license.

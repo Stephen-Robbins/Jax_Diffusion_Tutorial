@@ -1,3 +1,5 @@
+"""Stochastic differential equation helpers for score-based models."""
+
 from abc import ABC, abstractmethod
 import jax.random as jr
 import jax.numpy as jnp
@@ -15,46 +17,64 @@ class SDE(ABC):
   
     @abstractmethod
     def Drift(self, x, t, y=None):
-        """
-        Samples from the backward sde
-
-        """
+        """Drift coefficient of the forward SDE."""
         raise NotImplementedError
     
     @abstractmethod
     def Diffusion(self, x, t):
-        """
-        Samples from the backward sde
-
-        """
+        """Diffusion coefficient of the SDE."""
         raise NotImplementedError
     
-    def Score(self, score, x, t, y=None):
-        """
-        Samples from the backward sde
+    def Score(
+        self,
+        score,
+        x: jnp.ndarray,
+        t: float,
+        y: jnp.ndarray | None = None,
+    ) -> jnp.ndarray:
+        """Evaluate the score model.
 
+        Args:
+            score: Callable neural network.
+            x: Current sample.
+            t: Time parameter.
+            y: Optional conditioning data.
+
+        Returns:
+            Model output evaluated at ``(x, t)``.
         """
+
         return score(x, t)
 
-    def Prior(self, key, data_shape, y=None):
-        """
-        Samples from the backward sde
+    def Prior(
+        self, key: jr.KeyArray, data_shape: tuple[int, ...], y: jnp.ndarray | None = None
+    ) -> jnp.ndarray:
+        """Sample from the prior distribution."""
 
-        """
         return jr.normal(key, data_shape)
     
-    def Backward_Drift(self, score, x, t, y=None):
-        """
-        Samples from the backward sde
+    def Backward_Drift(
+        self, score, x: jnp.ndarray, t: float, y: jnp.ndarray | None = None
+    ) -> jnp.ndarray:
+        """Drift term for the reverse-time SDE."""
 
-        """
-        
-        score=self.Score(score, x, t, y)
-        
-        return self.Drift(x, t, y)-(self.Diffusion(x, t)**2*score)
+        score = self.Score(score, x, t, y)
+
+        return self.Drift(x, t, y) - (self.Diffusion(x, t) ** 2 * score)
   
     #@eqx.filter_jit  
-    def backward_sample(self, score, data_shape, key, t0=0, t1=1, dt=0.001, y=None):
+    def backward_sample(
+        self,
+        score,
+        data_shape: tuple[int, ...],
+        key: jr.KeyArray,
+        t0: float = 0.0,
+        t1: float = 1.0,
+        dt: float = 0.001,
+        y: jnp.ndarray | None = None,
+    ) -> list[jnp.ndarray]:
+        """Simulate the reverse-time SDE path."""
+
         num_steps = int((t1 - t0) / dt)
         times = jnp.linspace(t1-0.0001, t0+0.0011, num_steps)  # Create an array of times
         key, subkey = jr.split(key)
@@ -93,11 +113,15 @@ class VPSDE(SDE):
         return weight * jnp.mean((std*pred + noise) ** 2)
 
     def B(self, t):
-        return self.bmin+t*(self.bmax-self.bmin)
+        """Variance schedule."""
+
+        return self.bmin + t * (self.bmax - self.bmin)
 
     def alpha(self, t):
-        x = self.bmin*t+((self.bmax-self.bmin)*t**2)/2
-        a = jnp.exp(-x/2)
+        """Compute the mean decay."""
+
+        x = self.bmin * t + ((self.bmax - self.bmin) * t**2) / 2
+        a = jnp.exp(-x / 2)
         return a
 
     def p(self, x, t):

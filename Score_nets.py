@@ -1,4 +1,6 @@
 
+"""Neural network architectures used for score-based diffusion."""
+
 import equinox as eqx
 import jax
 import jax.numpy as jnp
@@ -162,27 +164,35 @@ class LinearTimeSelfAttention(eqx.Module):
         return self.to_out(out)
 
 
-def upsample_2d(y, factor=2):
+def upsample_2d(y: jnp.ndarray, factor: int = 2) -> jnp.ndarray:
+    """Nearest-neighbour upsampling for ``C x H x W`` tensors."""
+
     C, H, W = y.shape
     y = jnp.reshape(y, [C, H, 1, W, 1])
     y = jnp.tile(y, [1, 1, factor, 1, factor])
     return jnp.reshape(y, [C, H * factor, W * factor])
 
 
-def downsample_2d(y, factor=2):
+def downsample_2d(y: jnp.ndarray, factor: int = 2) -> jnp.ndarray:
+    """Average pooling downsampling for ``C x H x W`` tensors."""
+
     C, H, W = y.shape
     y = jnp.reshape(y, [C, H // factor, factor, W // factor, factor])
     return jnp.mean(y, axis=[2, 4])
 
 
 def exact_zip(*args):
+    """Zip lists while asserting equal length."""
+
     _len = len(args[0])
     for arg in args:
         assert len(arg) == _len
     return zip(*args)
 
 
-def key_split_allowing_none(key):
+def key_split_allowing_none(key: jr.KeyArray | None):
+    """Split a PRNG key but allow ``None`` for convenience."""
+
     if key is None:
         return key, None
     else:
@@ -190,6 +200,8 @@ def key_split_allowing_none(key):
 
 
 class Residual(eqx.Module):
+    """Wrap a module with a residual connection."""
+
     fn: LinearTimeSelfAttention
 
     def __init__(self, fn):

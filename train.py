@@ -1,4 +1,6 @@
 
+"""Training utilities for score-based diffusion models."""
+
 import functools as ft
 import equinox as eqx
 import jax
@@ -10,7 +12,16 @@ import os
 import datetime
 
 
-def batch_loss_fn(model,  sde, data, data_y, t1, key):
+def batch_loss_fn(
+    model,
+    sde,
+    data: jnp.ndarray,
+    data_y: jnp.ndarray,
+    t1: float,
+    key: jr.KeyArray,
+) -> jnp.ndarray:
+    """Compute the training loss for a batch."""
+
     batch_size = data.shape[0]
     
     tkey, losskey = jr.split(key)
@@ -26,7 +37,16 @@ def batch_loss_fn(model,  sde, data, data_y, t1, key):
 
 
 @eqx.filter_jit
-def make_step(model, sde, data, data_y, t1, key, opt_state, opt_update):
+def make_step(
+    model,
+    sde,
+    data: jnp.ndarray,
+    data_y: jnp.ndarray,
+    t1: float,
+    key: jr.KeyArray,
+    opt_state,
+    opt_update,
+) -> tuple[jnp.ndarray, eqx.Module, jr.KeyArray, object]:
     
     loss_fn = eqx.filter_value_and_grad(batch_loss_fn)
     loss, grads = loss_fn(model, sde, data, data_y, t1, key)
@@ -35,7 +55,8 @@ def make_step(model, sde, data, data_y, t1, key, opt_state, opt_update):
     key = jr.split(key, 1)[0]
     return loss, model, key, opt_state
 
-def dataloader(data, batch_size, *, key):
+def dataloader(data: jnp.ndarray, batch_size: int, *, key: jr.KeyArray):
+    """Simple data generator yielding batches."""
     dataset_size = data.shape[0]
     indices = jnp.arange(dataset_size)
     
@@ -68,7 +89,10 @@ def main(
     checkpoint_every=1000,
     checkpoint_dir="checkpoints/Diffusion",
     filename=None,
-):
+) -> None:
+    """Run a training loop for the supplied model and SDE."""
+
+    
     key = jr.PRNGKey(seed)
     train_key, loader_key,loader_key2, sample_key = jr.split(key, 4)
     data_shape = data.shape[1:]
